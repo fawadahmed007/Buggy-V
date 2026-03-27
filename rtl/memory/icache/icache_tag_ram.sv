@@ -1,0 +1,47 @@
+
+
+`ifndef VERILATOR
+`include "../../defines/cache_defs.svh"
+`else
+`include "cache_defs.svh"
+`endif
+
+module icache_tag_ram
+#(
+parameter NUM_COL    = 1,
+parameter COL_WIDTH  = 32,
+parameter ADDR_WIDTH = $clog2(ICACHE_NO_OF_SETS), // 11
+parameter DATA_WIDTH = NUM_COL*COL_WIDTH          // Data width in bits
+) (
+  input wire                     clk,
+  input wire                     rst_n,
+
+  input wire                     req,
+  input wire                     wr_en,           // [NUM_COL-1:0]
+  input wire   [ADDR_WIDTH-1:0]  addr,
+  input wire   [DATA_WIDTH-1:0]  wdata,
+  output logic [DATA_WIDTH-1:0]  rdata,
+  input flush
+);
+
+// Memory
+reg [DATA_WIDTH-1:0] icache_tagram [ICACHE_NO_OF_SETS-1:0];
+
+// Port read write operation
+always @ (posedge clk) begin
+   if (req) begin
+      if (wr_en) begin
+         icache_tagram[addr] <= wdata;
+         rdata               <= wdata;
+      end else begin
+         rdata               <= icache_tagram[addr]; 
+      end 
+   end 
+   if (flush & wr_en) begin
+   	icache_tagram[addr][31] = 0;
+   end
+   else begin
+   end
+end
+
+endmodule 
